@@ -40,9 +40,9 @@ spike_hit:
     JMP GameEngineDone
 
 EnginePlaying:
-    LDA ball_x
-    PHA
     LDA ball_y
+    PHA
+    LDA ball_x
     PHA
     LDA #$01
     ASL A
@@ -127,11 +127,26 @@ CorrectCollisions:
 ; if stationary, treat it as neither up nor down
 ; ==> this prevents getting stuck 
 
+
+.check_right:
+    LDA #$00
+    JSR GetPixel
+    LDA current_block
+    CMP #$01
+    BNE .check_down_pop_x
+    PLA                 ; pop ball_x
+    STA ball_x
+    DEC ball_x ;; is it needed?
+    JMP .check_down
+    
+    
+.check_down_pop_x
+    PLA                     ; pop y because prev didn't
 .check_down:
     LDA ballspeedy
     CMP #0
     BPL .continue_down
-    BEQ .check_right_pop_y
+    BEQ .done_pop
     JMP .check_up
     ; Check down block
     ; If collision, then pop ball_y and reset gravity
@@ -140,7 +155,7 @@ CorrectCollisions:
     JSR GetPixel
     LDA current_block
     CMP #$01
-    BNE .check_right_pop_y    ; if not ground, go to check_right (we can't check up if we got here b/c we're travelling down)
+    BNE .done_pop    ; if not ground, go to check_right (we can't check up if we got here b/c we're travelling down)
     PLA                     ; pop ball_y
     STA ball_y
     
@@ -148,7 +163,7 @@ CorrectCollisions:
     STA ballspeedy
     STA nojump
     STA g_counter
-    JMP .check_right
+    JMP .done
 
 ; always check_right after check_down or check_up
 ; if no collision up, go to check_right.
@@ -158,7 +173,7 @@ CorrectCollisions:
     JSR GetPixel
     LDA current_block
     CMP #$01
-    BNE .check_right_pop_y
+    BNE .done_pop
     PLA
     STA ball_y
     ;PLA
@@ -168,19 +183,7 @@ CorrectCollisions:
     STA nojump
     ;JMP .done
    
-;FIX THIS, IT SEEMS LIKE SOMETHING ISN'T GETTING POPPED CORRECTLY
-.check_right_pop_y
-    PLA                     ; pop y because prev didn't
-.check_right:
-    LDA #$00
-    JSR GetPixel
-    LDA current_block
-    CMP #$01
-    BNE .done_pop
-    PLA                 ; pop ball_x
-    STA ball_x
-    DEC ball_x
-    JMP .done
+
    
 .check_left:
     ;LDA #$02
