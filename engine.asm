@@ -145,8 +145,8 @@ CorrectCollisions:
 .check_down:
     LDA ballspeedy
     CMP #0
-    BPL .continue_down
     BEQ .done_pop
+    BCS .continue_down
     JMP .check_up
     ; Check down block
     ; If collision, then pop ball_y and reset gravity
