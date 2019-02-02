@@ -96,6 +96,7 @@ GetPixel:                       ; to do: GetPixelLow and GetPixelHi?
     CMP #$01
     BNE .increase_y2
     INC temp_y
+    JMP .next
     ;INC temp_x
     ;JMP .increase_x
     ;JMP .next

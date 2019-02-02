@@ -147,6 +147,7 @@ CorrectCollisions:
     CMP #0
     BEQ .done_pop
     BMI .check_up
+    ;JMP .check_up
     ;BCS .continue_down
     ; Check down block
     ; If collision, then pop ball_y and reset gravity
@@ -181,7 +182,7 @@ CorrectCollisions:
     STA ballspeedy
     LDA #$01
     STA nojump
-    ;JMP .done
+    JMP .done
    
 
    
