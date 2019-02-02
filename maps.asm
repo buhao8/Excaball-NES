@@ -117,7 +117,7 @@ GetPixel:                       ; to do: GetPixelLow and GetPixelHi?
     ;DEC temp_x
     ;DEC temp_x
     ;DEC temp_x
-    ;INC temp_y
+    INC temp_y
     ;INC temp_y
     ;INC temp_y
     ;INC temp_y
