@@ -106,7 +106,7 @@ InitVars:
 SetupNMI:
     LDA #%10001000   ; enable NMI, sprites from Pattern Table 1, background from Pattern Table 0
     STA $2000
-    LDA #%00011110   ; enable sprites, enable background, no clipping on left side, no color bias
+    LDA #%00011010   ; enable sprites, enable background, no clipping on left side, no color bias
     STA $2001
     
     LDA #$01
@@ -178,7 +178,7 @@ BackgroundLoopDone:
 FlagClear:
     JSR ReadController     ; do the game engine
     JSR GameEngine         ; PPU already written to previously
-    LDA #%00011110         ; re-enable rendering
+    LDA #%00011010         ; re-enable rendering
     STA $2001
 
     
