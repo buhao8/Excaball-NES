@@ -52,23 +52,11 @@ EnginePlaying:
     ASL A
     ASL A
     AND $2002
-    JMP ._continue
 
     
-    
-._continue
 ; 0 - up
 ; 1 - down
 ; 2 - apex
-.override
-    JMP Gravity
-    
-    ; Stuff here not done
-    LDA #$01
-    STA ballspeedy
-    LDA #$01
-    STA up_down
-    JMP GravityStep
 Gravity:
     LDA g_counter
     CMP #10
@@ -116,16 +104,17 @@ GravityStep:
     
     INC g_counter
 .done_gravity_step
-    ;JMP GameEngineDone
-    ;JMP CheckGemCollision
-    ;JMP CheckUp
 
     
 CorrectCollisions:
 
-; if going down, check_down. if up, check_up
-; if stationary, treat it as neither up nor down
-; ==> this prevents getting stuck 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; COLLISION DETECTION
+; Check right only if user holding right.
+; Check left only if user holding left.
+;
+; Check down if falling, else up.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
 
 
 .check_right:
@@ -137,9 +126,9 @@ CorrectCollisions:
     LDA current_block
     CMP #$01
     BNE .check_down_pop_x
-    PLA                 ; pop ball_x
+    PLA                         ; pop ball_x
     STA ball_x
-    DEC ball_x ;; is it needed?
+    DEC ball_x                  ; is it needed?
     JMP .check_down
     
 .check_left:
@@ -158,14 +147,13 @@ CorrectCollisions:
     
     
 .check_down_pop_x
-    PLA                     ; pop y because prev didn't
+    PLA                     ; pop x because prev didn't
 .check_down:
+    ; branch based on ball speed
     LDA ballspeedy
     CMP #0
     BEQ .done_pop
     BMI .check_up
-    ;JMP .check_up
-    ;BCS .continue_down
     ; Check down block
     ; If collision, then pop ball_y and reset gravity
 .continue_down
@@ -173,8 +161,8 @@ CorrectCollisions:
     JSR GetPixel
     LDA current_block
     CMP #$01
-    BNE .done_pop    ; if not ground, go to check_right (we can't check up if we got here b/c we're travelling down)
-    PLA                     ; pop ball_y
+    BNE .done_pop       ; if not ground, go to end bc can't be up
+    PLA                 ; pop ball y
     STA ball_y
     
     LDA #$00            ; reset gravity
@@ -183,9 +171,6 @@ CorrectCollisions:
     STA g_counter
     JMP .done
 
-; always check_right after check_down or check_up
-; if no collision up, go to check_right.
-; if done, go to check_right
 .check_up:
     LDA #$03
     JSR GetPixel
@@ -200,12 +185,9 @@ CorrectCollisions:
     LDA #$01
     STA nojump
     JMP .done
-   
-
-   
 
 .done_pop
-    PLA             ; pop x because prev didn't
+    PLA             ; pop y because prev didn't
 .done
     JMP CheckGemCollision
 

@@ -91,16 +91,13 @@ GetPixel:                       ; to do: GetPixelLow and GetPixelHi?
     LDX ball_x
     STX temp_x
 
-.increase_y                     ; increase y by 1 if down
+.increase_y                     ; DOWN
     LDA maps_dir
     CMP #$01
     BNE .increase_y2
     INC temp_y
     JMP .next
-    ;INC temp_x
-    ;JMP .increase_x
-    ;JMP .next
-.increase_y2                    ; increase y by 4 if up
+.increase_y2                    ; UP
     CMP #$03
     BNE .increase_x
     INC temp_y
@@ -110,7 +107,7 @@ GetPixel:                       ; to do: GetPixelLow and GetPixelHi?
     INC temp_y
     JMP .next
     ;DEC temp_x
-.increase_x
+.increase_x                     ; RIGHT
     CMP #$00
     BNE .increase_x2
     ;DEC temp_x
@@ -127,7 +124,7 @@ GetPixel:                       ; to do: GetPixelLow and GetPixelHi?
     ;INC temp_y
     ;INC temp_y
     JMP .next
-.increase_x2
+.increase_x2                    ; LEFT
 .next
     LDX #$00
     LDY #$00
@@ -148,17 +145,9 @@ GetPixel:                       ; to do: GetPixelLow and GetPixelHi?
 	    
 	; temp_maps += A
 	STA temp_var
-
-	;LDA temp_maps
-	;CLC
-	;ADC temp_var
-	;STA temp_maps
-	
-	;LDA temp_x
-	;CLC
-	;ADC temp_var
 	STA temp_maps
     
+    ; pointerHi += A
     LDA pointerHi
 	CLC
     ADC temp_var
@@ -168,22 +157,6 @@ GetPixel:                       ; to do: GetPixelLow and GetPixelHi?
 	LDA #$00
 	JMP .start_lower_y
     
-	
-    
-;.loop_y             ; don't touch because this at least works
-;    CMP temp_y
-;    BCS .done_y
-;    INC pointerHi
-;    INX
-;    CLC
-;    ADC #64         ; #240 / #4 = #60  screen_height / 4 pixels per sprite
-;    JMP .loop_y
-;.done_y             ; i think it's finding which vertical quarter of the screen we're in.  not sure what #64 is for
-;    DEC pointerHi
-;    DEX
-;    STX temp_maps
-; pointerLo = (y/8)*32 + (x/8)
-;    LDA #$00    
     
 .start_lower_y
     CMP temp_y
@@ -192,7 +165,7 @@ GetPixel:                       ; to do: GetPixelLow and GetPixelHi?
     ADC #8         ; #240 / #4 = #60
     INY
     JMP .start_lower_y
-.end_lower_y                ; Don't touch
+.end_lower_y                ; Don't touch, figure out why I did it later
     DEY
     TYA
     SEC
@@ -226,7 +199,7 @@ GetPixel:                       ; to do: GetPixelLow and GetPixelHi?
     STA temp_maps
     LDX #$00
     LDA #$00
-.loop_x                 ; TODO: we need to account for TWO locations (ball-4 and ball+4)
+.loop_x
     CMP temp_x
     BCS .done
     INX
@@ -276,6 +249,7 @@ GetPixel:                       ; to do: GetPixelLow and GetPixelHi?
 ;    JMP .done_next
 .done_next
 
+    ; If right or left, don't bother looking at x+1 (doesn't make sense)
     LDA maps_dir
     CMP #$00
     BEQ .is_right_or_left
@@ -330,12 +304,7 @@ GetPixel:                       ; to do: GetPixelLow and GetPixelHi?
     STA block_up
 .done_done
     RTS  
-    
-; pointerHi = +1
-; pointerLo = 67 = (y/8 - 8 * overflows_in_y) * 32 + x/8 = 80-64*1 + 24/8    
-; X holds overflows over .loop_y, then is counter in .loop32
-; RULE: X holds result of multiplication and division, but X is compared in mult
-;       and A is compared in division
+
     
 mapconstants:
     .db $00, $02
