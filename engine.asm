@@ -129,6 +129,9 @@ CorrectCollisions:
 
 
 .check_right:
+    LDA ballspeedx
+    CMP #1
+    BNE .check_left
     LDA #$00
     JSR GetPixel
     LDA current_block
@@ -137,6 +140,20 @@ CorrectCollisions:
     PLA                 ; pop ball_x
     STA ball_x
     DEC ball_x ;; is it needed?
+    JMP .check_down
+    
+.check_left:
+    LDA ballspeedx
+    CMP #-1
+    BNE .check_down_pop_x
+    LDA #$02
+    JSR GetPixel
+    LDA current_block
+    CMP #$01
+    BNE .check_down_pop_x
+    PLA
+    STA ball_x
+    INC ball_x
     JMP .check_down
     
     
@@ -186,22 +203,7 @@ CorrectCollisions:
    
 
    
-.check_left:
-    ;LDA #$02
-    ;JSR GetPixel
-    ;LDA current_block
-    ;CMP #$01
-    ;BNE .done_pop
-    ;PLA ball_x
-    ;
-    ;LDA #$00
-    ;STA 
-    
-    
-    ;JSR CheckRight
-    ;JSR CheckLeft
-    ;JSR CheckUp
-    ;JSR CheckDown
+
 .done_pop
     PLA             ; pop x because prev didn't
 .done

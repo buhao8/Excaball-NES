@@ -1,4 +1,9 @@
 ReadController:
+
+    ; try to move this somewhere else
+    LDA #$00
+    STA ballspeedx
+
     ; clear remote status
     LDA #$01
     STA $4016
@@ -70,6 +75,8 @@ LeftPressed:
     SEC
     SBC #1
     STA ball_x
+    LDA #-1
+    STA ballspeedx
     JMP EndLeft
     
 RightPressed:
@@ -77,6 +84,8 @@ RightPressed:
     CLC
     ADC #1
     STA ball_x
+    LDA #1
+    STA ballspeedx
     JMP EndRight
 
 StartPressed:

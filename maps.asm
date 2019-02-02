@@ -108,23 +108,24 @@ GetPixel:                       ; to do: GetPixelLow and GetPixelHi?
     INC temp_y
     INC temp_y
     INC temp_y
-    DEC temp_x
+    JMP .next
+    ;DEC temp_x
 .increase_x
     CMP #$00
     BNE .increase_x2
-    DEC temp_x
-    DEC temp_x
-    DEC temp_x
-    DEC temp_x
-    DEC temp_x
-    DEC temp_x
-    DEC temp_x
-    INC temp_y
-    INC temp_y
-    INC temp_y
-    INC temp_y
-    INC temp_y
-    INC temp_y
+    ;DEC temp_x
+    ;DEC temp_x
+    ;DEC temp_x
+    ;DEC temp_x
+    ;DEC temp_x
+    ;DEC temp_x
+    ;DEC temp_x
+    ;INC temp_y
+    ;INC temp_y
+    ;INC temp_y
+    ;INC temp_y
+    ;INC temp_y
+    ;INC temp_y
     JMP .next
 .increase_x2
 .next
@@ -274,12 +275,23 @@ GetPixel:                       ; to do: GetPixelLow and GetPixelHi?
 ;    DEC pointerHi
 ;    JMP .done_next
 .done_next
+
+    LDA maps_dir
+    CMP #$00
+    BEQ .is_right_or_left
+    CMP #$02
+    BEQ .is_right_or_left
+    
     LDA [pointerLo], Y
     
     ; NEW STUFF: CHECK CURRENT X COORD AND ONE NEXT TO IT (X+1)
+    ; ONLY FOR UP AND DOWN
     CMP #1
     BEQ .already_found_block_to_right
     INY
+    ; continue to LDA[pointerLo], Y
+    
+.is_right_or_left
     LDA [pointerLo], Y
 .already_found_block_to_right
     TAX
