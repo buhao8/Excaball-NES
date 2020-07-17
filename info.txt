@@ -1,0 +1,114 @@
+banks 0 and 1 total 16KB PRG, 8KB each
+bank 2 is graphics
+
+$0000-0800 - Internal RAM, 2KB chip in the NES
+$2000-2007 - PPU access ports
+$4000-4017 - Audio and controller access ports
+$6000-7FFF - Optional WRAM inside the game cart
+$8000-FFFF - Game cart ROM
+
+PPUCTRL ($2000)
+76543210
+| ||||||
+| ||||++- Base nametable address
+| ||||    (0 = $2000; 1 = $2400; 2 = $2800; 3 = $2C00)
+| |||+--- VRAM address increment per CPU read/write of PPUDATA
+| |||     (0: increment by 1, going across; 1: increment by 32, going down)
+| ||+---- Sprite pattern table address for 8x8 sprites (0: $0000; 1: $1000)
+| |+----- Background pattern table address (0: $0000; 1: $1000)
+| +------ Sprite size (0: 8x8; 1: 8x16)
+|
++-------- Generate an NMI at the start of the
+          vertical blanking interval vblank (0: off; 1: on)
+
+PPUMASK ($2001)
+76543210
+||||||||
+|||||||+- Grayscale (0: normal color; 1: AND all palette entries
+|||||||   with 0x30, effectively producing a monochrome display;
+|||||||   note that colour emphasis STILL works when this is on!)
+||||||+-- Disable background clipping in leftmost 8 pixels of screen
+|||||+--- Disable sprite clipping in leftmost 8 pixels of screen
+||||+---- Enable background rendering
+|||+----- Enable sprite rendering
+||+------ Intensify reds (and darken other colors)
+|+------- Intensify greens (and darken other colors)
++-------- Intensify blues (and darken other colors)
+
+PPUSTATUS ($2002)
+- Read x1
+7  bit  0
+---- ----
+VSO. ....
+|||| ||||
+|||+-++++- Least significant bits previously written into a PPU register
+|||        (due to register not being updated for this address)
+||+------- Sprite overflow. The intent was for this flag to be set
+||         whenever more than eight sprites appear on a scanline, but a
+||         hardware bug causes the actual behavior to be more complicated
+||         and generate false positives as well as false negatives; see
+||         PPU sprite evaluation. This flag is set during sprite
+||         evaluation and cleared at dot 1 (the second dot) of the
+||         pre-render line.
+|+-------- Sprite 0 Hit.  Set when a nonzero pixel of sprite 0 overlaps
+|          a nonzero background pixel; cleared at dot 1 of the pre-render
+|          line.  Used for raster timing.
++--------- Vertical blank has started (0: not in vblank; 1: in vblank).
+           Set at dot 1 of line 241 (the line *after* the post-render
+           line); cleared after reading $2002 and at dot 1 of the
+           pre-render line.
+
+OAMADDR ($2003)
+- Write x1
+- Write start address (most games use $00), then use OAMDMA (#$02 to $4014)
+
+OAMDATA ($2004)
+Don't write to this register directly in most cases.
+
+PPUSCROLL ($2005)
+- Write x2
+- Change scroll position
+- Determines top left pixel
+- Read PPUSTATUS, then
+    LDA cam_x
+    STA PPUSCROLL
+    LDA cam_y
+    STA PPUSCROLL
+
+Sprite Data
+0 - Y
+1 - Tile Number
+2 - Attributes
+ 76543210
+ |||   ||
+ |||   ++- Color Palette of sprite.  Choose which set of 4 from the 16 colors to use
+ |||
+ ||+------ Priority (0: in front of background; 1: behind background)
+ |+------- Flip sprite horizontally
+ +-------- Flip sprite vertically
+3 - X
+
+
+
+PPU OAM
+Byte 0 - Y pos of top
+
+Byte 1 - Tile index number
+76543210
+||||||||
+|||||||+- Bank ($0000 or $1000) of tiles
++++++++-- Tile number of top of sprite (0 to 254; bottom half gets the next tile)
+
+Byte 2 - Attributes
+76543210
+||||||||
+||||||++- Palette (4 to 7) of sprite
+|||+++--- Unimplemented
+||+------ Priority (0: in front of background; 1: behind background)
+|+------- Flip sprite horizontally
++-------- Flip sprite vertically
+
+Byte 3 - X pos to left
+
+
+

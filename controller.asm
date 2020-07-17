@@ -1,102 +1,87 @@
-ReadController:
-
-    ; try to move this somewhere else
-    LDA #$00
-    STA ballspeedx
-
-    ; clear remote status
+    ; Port 1 - $4016
+    ; Port 2 - $4017
+    ; Write #$01 then #$00 to $4016 to latch buttons
+    ; A, B, Sel, Start, U, D, L, R    
+Read_Controller:    
+    LDA buttons
+    STA last_buttons
+    
     LDA #$01
     STA $4016
     LDA #$00
     STA $4016
-  
-  
-    ; A, B, Select, Start, Up, Down, Left, Right
-    LDA $4016 ; A
-    AND #1
-    BNE APressed
-    LDA #0
-    STA a_pressed
-EndA:
-    
-    LDA $4016 ; B
-    LDA $4016 ; SEL
-    LDA $4016 ; START
-    AND #1
-    BNE StartPressed
-    LDA #0
-    STA start_pressed
-EndStart:
+    LDX #$08
+        
+Read_Controller_Loop:
+    LDA $4016
+    LSR A       ; Capture bit 0 in carry
+    ROL buttons ; Shift data left and add carry
+    DEX
+    BNE Read_Controller_Loop
 
-    LDA $4016 ; UP
-    LDA $4016 ; DOWN
-  
-    LDA $4016 ; LEFT
-    AND #1
-    BNE LeftPressed
-EndLeft:  
-
-    LDA $4016 ; RIGHT
-    AND #1
-    BNE RightPressed
-EndRight:    
+    RTS
     
-    JMP EndPressed
-  
-; Only jumps if !nojump, set by Collision with floor
-APressed:
-    ;LDA a_pressed
-    ;ORA nojump
-    LDA nojump
-    CMP #0
-    BNE EndA
-    
-    LDA #1
-    STA nojump
-    
-    LDA #1
-    STA a_pressed
-    LDA #-2
-    STA ballspeedy
-    
-    ;LDA ball_y
-    ;SEC
-    ;SBC #$01
-    ;STA ball_y       ; needed to remove collision from ground before jump
-    
-    LDA #$00
-    STA g_counter
-    
-    JMP EndA
-    
-  
-LeftPressed:
-    LDA ball_x
-    SEC
-    SBC #1
-    STA ball_x
-    LDA #-1
-    STA ballspeedx
-    JMP EndLeft
-    
-RightPressed:
-    LDA ball_x
-    CLC
-    ADC #1
-    STA ball_x
-    LDA #1
-    STA ballspeedx
-    JMP EndRight
-
-StartPressed:
-    LDA start_pressed
-    CMP #$01
-    BEQ EndStart
-    JSR NextRoom
+;;; CONTROLLER LOGIC ;;;
+Process_Controller:
+Read_A:
+    LDA buttons
+    AND #$80
+    BEQ Read_B
+    LDA can_jump
+    BEQ Read_B
+    DEC can_jump
+    ; Jumping means we've landed, do NOT do this in Collision_Down
+    ; Scenario: We've been on the ground for awhile, gravity_tick keeps
+    ;           ping-ponging between GRAVITY_DUR and GRAVITY_DUR - 1
+    LDA #GRAVITY_DUR
+    STA grav_tick
+    LDA #$FC
+    STA ball_vy
+Read_B:
+    ;LDA buttons
+    ;AND #$40
+    ;BEQ Read_Start
+Read_Select:
+    LDA buttons
+    AND #$20
+    BEQ Read_Start
+    LDA last_buttons
+    AND #$20
+    BNE Read_Start
+    JSR Increment_Level
+    INC update_hud
+    JSR Load_Level
+    ;LDA last_sel
+    ;BNE Read_Up
+    ;JSR Increment_Level
+Read_Start:
+    LDA buttons
+    AND #$10
+    BEQ Read_Up
+    LDA last_buttons
+    AND #$10
+    BNE Read_Up
+    JSR Increment_Score
+    INC update_hud
+Read_Up:
+    ;LDA buttons
+    ;AND #$08
+    ;BEQ Read_Down
+Read_Down:
+    LDA buttons
+    AND #$04
+    BEQ Read_Left
+Read_Left:
+    LDA buttons
+    AND #$02
+    BEQ Read_Right
+    LDA #$FF
+    STA ball_vx
+Read_Right:
+    LDA buttons
+    AND #$01
+    BEQ Read_Done
     LDA #$01
-    STA start_pressed
-    JMP EndStart
-
- 
-EndPressed:
-    RTS   
+    STA ball_vx
+Read_Done:
+    RTS

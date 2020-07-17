@@ -1,5 +1,7 @@
 *.nes
 *.fns
+*.nes.0.nl
 *.deb
 *.nl
 *.exe
+*.obj
